@@ -1,0 +1,23 @@
+---
+description: Tooling and code quality
+alwaysApply: true
+---
+
+# Package management
+
+- Use `uv` for dependency management and scripts.
+- Do not use pip directly.
+
+# Linting & formatting
+
+- Use `ruff` for linting and formatting.
+- Ensure code passes `ruff check` before proposing changes.
+
+# Python
+
+- Follow ruff default rules unless specified otherwise.
+- Prefer clean, idiomatic Python.
+
+# Commands
+
+- Use `uv run` to execute scripts.

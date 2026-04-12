@@ -1,0 +1,159 @@
+# =========================================================
+# Cursor Ignore File
+# ---------------------------------------------------------
+# This file tells Cursor which files/folders should NOT be
+# indexed or used for AI context.
+#
+# Goal:
+# - Reduce noise
+# - Improve relevance of AI suggestions
+# - Avoid leaking sensitive data
+# - Keep context focused on useful code
+# =========================================================
+
+
+# =========================================================
+# 1. Dependencies & Virtual Environments
+# =========================================================
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# UV / pip cache
+__pypackages__/
+*.egg-info/
+
+# Node modules (if frontend later)
+node_modules/
+
+
+# =========================================================
+# 2. Build, Cache & Temporary Files
+# =========================================================
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs & temp
+*.log
+tmp/
+temp/
+
+
+# =========================================================
+# 3. Environment & Secrets (CRITICAL)
+# =========================================================
+
+# Environment variables
+.env
+.env.*
+*.env
+
+# Secrets / keys
+secrets/
+*.pem
+*.key
+*.crt
+
+# GCP / AWS credentials
+*.json
+
+
+# =========================================================
+# 4. IDE & Editor Files
+# =========================================================
+
+# VSCode
+.vscode/
+
+# JetBrains
+.idea/
+
+# MacOS
+.DS_Store
+
+# Cursor local config (optional)
+.cursor/
+
+
+# =========================================================
+# 5. Data & Large Files (IMPORTANT for LLM context)
+# =========================================================
+
+# Raw data files
+data/
+datasets/
+
+# Large files
+*.csv
+*.parquet
+*.feather
+*.h5
+
+# Model artifacts
+models/
+checkpoints/
+*.pt
+*.pth
+*.onnx
+*.pkl
+
+
+# =========================================================
+# 6. Build / Deployment Artifacts
+# =========================================================
+
+# Docker
+docker-compose.override.yml
+
+# Build outputs
+dist/
+build/
+
+# Cloud / infra
+.terraform/
+*.tfstate
+
+
+# =========================================================
+# 7. Generated Code / Outputs
+# =========================================================
+
+# Generated API clients / SDKs
+generated/
+
+# Reports / exports
+reports/
+exports/
+
+
+# =========================================================
+# 8. Optional: Keep Only Important Source Context
+# =========================================================
+
+# Uncomment if you want VERY focused context for AI
+# (useful when repo grows)
+
+# *
+# !app/
+# !src/
+# !README.md
+# !pyproject.toml
+
+
+# =========================================================
+# Notes:
+# ---------------------------------------------------------
+# - Cursor works best with SMALL, HIGH-QUALITY context
+# - Excluding data + artifacts = much better suggestions
+# - Never expose secrets to the AI index
+# =========================================================

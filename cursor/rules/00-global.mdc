@@ -1,0 +1,23 @@
+---
+description: Global project conventions
+alwaysApply: true
+---
+
+# General
+
+- Write concise, production-grade code.
+- Prefer small, focused changes.
+- Do not rewrite unrelated files.
+- Preserve existing naming unless asked otherwise.
+
+# Python
+
+- Use Python type hints everywhere.
+- Prefer explicit imports.
+- Add docstrings only when they add real value.
+- Avoid over-engineering.
+
+# Output
+
+- When proposing code changes, follow the existing project structure.
+- Explain tradeoffs briefly when architecture is impacted.

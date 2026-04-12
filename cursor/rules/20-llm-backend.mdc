@@ -1,0 +1,18 @@
+---
+description: LLM backend conventions
+alwaysApply: true
+---
+
+# LLM backend
+
+- Separate prompts from Python code when possible.
+- Keep prompt templates in a dedicated folder.
+- Never hardcode secrets or API keys.
+- Log model name, prompt version, and latency when relevant.
+- Make provider wrappers replaceable.
+- Prefer structured outputs over free-form parsing.
+
+# Reliability
+
+- Add retries/timeouts for external model calls.
+- Handle malformed model outputs defensively.

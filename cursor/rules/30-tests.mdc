@@ -1,0 +1,35 @@
+---
+description: Testing conventions
+alwaysApply: true
+---
+
+# Style
+
+- Use pytest with plain functions (no classes).
+- Name tests: `test_<what>_<expected>`.
+
+# Scope
+
+- Prefer unit tests for services.
+- Keep API tests minimal.
+
+# Mocking
+
+- Mock all external deps: LLM, APIs, DB.
+- No real network calls.
+
+# Database
+
+- Do not use real DB.
+- Prefer mocked repositories.
+- Optional: in-memory SQLite.
+
+# LLM
+
+- Mock responses (deterministic).
+- Test parsing + error handling.
+
+# Rules
+
+- Tests must be fast and deterministic.
+- No randomness without fixed seed.

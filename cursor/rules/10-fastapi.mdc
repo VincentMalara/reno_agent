@@ -1,0 +1,18 @@
+---
+description: FastAPI backend conventions
+alwaysApply: true
+---
+
+# FastAPI
+
+- Use FastAPI routers under `app/api/routers`.
+- Put business logic in `app/services`.
+- Put provider integrations in `app/integrations`.
+- Keep routers thin.
+- Validate request/response models with Pydantic.
+- Prefer dependency injection for clients and settings.
+
+# Errors
+
+- Use explicit HTTPException only in API layer.
+- Raise domain-specific exceptions in services.
