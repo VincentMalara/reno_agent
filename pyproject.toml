@@ -1,0 +1,59 @@
+[project]
+name = "reno-agent"
+version = "0.1.0"
+description = "AI-powered backend for renovation price estimation and lead qualification"
+readme = "README.md"
+
+# Target Python version → used by tooling (ruff, uv, etc.)
+requires-python = ">=3.11"
+
+# Runtime dependencies only (what is needed in production)
+dependencies = [
+  "fastapi>=0.115",            # API framework
+  "uvicorn[standard]>=0.30",   # ASGI server (prod-ready)
+  "pydantic>=2.8",             # Data validation & schemas
+  "pydantic-settings>=2.4",    # Environment-based config
+  "httpx>=0.27",               # Async HTTP client (LLM / APIs)
+  "structlog>=24.4",           # Structured logging (important for observability)
+]
+
+# Dev-only dependencies (not shipped to production)
+[dependency-groups]
+dev = [
+  "pytest>=9.0",               # Testing framework
+  "pytest-asyncio>=0.24",      # Async test support (FastAPI)
+  "ruff>=0.6.0",               # Linter + formatter (fast, replaces black + flake8)
+]
+
+# -----------------------
+# LINTING / FORMATTING
+# -----------------------
+
+[tool.ruff]
+line-length = 100              # Balanced readability vs compactness
+target-version = "py311"       # Aligns with requires-python
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes (bugs)
+  "I",   # import sorting
+  "UP",  # modern Python upgrades
+  "B",   # bugbear (common pitfalls)
+]
+ignore = []                   # Keep strict by default
+
+[tool.ruff.format]
+quote-style = "double"        # Consistent style
+indent-style = "space"
+
+# -----------------------
+# TESTING
+# -----------------------
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]         # Explicit test discovery
+addopts = [
+  "-ra",                      # Show summary of skipped/failed tests
+]
