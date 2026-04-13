@@ -1,34 +1,41 @@
 # --------------------------------------------------
 # Default target
 # --------------------------------------------------
-# When running `make`, show help by default
+# When running `make` without arguments, display help
 .DEFAULT_GOAL := help
+
+
+# --------------------------------------------------
+# Environment files
+# --------------------------------------------------
+# Deployment configuration is stored in env files
+DEV_ENV := env/dev.env
+PROD_ENV := env/prod.env
 
 
 # --------------------------------------------------
 # HELP
 # --------------------------------------------------
-# Lists all available commands
 help:
 	@echo "Available commands:"
 	@echo ""
 	@echo "  make install        Install dependencies (dev included)"
 	@echo "  make dev            Run the API locally with auto-reload"
 	@echo ""
-	@echo "  make lint           Run ruff linter (auto-fix issues)"
-	@echo "  make format         Format code with ruff"
-	@echo "  make check          Run lint + format check (CI style)"
+	@echo "  make lint           Format and auto-fix code with Ruff"
+	@echo "  make check          Run CI-style checks (no file changes)"
+	@echo "  make test           Run tests"
 	@echo ""
-	@echo "  make test           Run test suite"
+	@echo "  make docker-build   Build Docker image locally"
+	@echo "  make docker-run     Run Docker image locally"
 	@echo ""
-	@echo "  make docker-build   Build Docker image"
-	@echo "  make docker-run     Run container locally"
+	@echo "  make deploy-dev     Build and deploy using env/dev.env"
+	@echo "  make deploy-prod    Build and deploy using env/prod.env"
 
 
 # --------------------------------------------------
 # INSTALL
 # --------------------------------------------------
-# Install dependencies using uv (including dev tools)
 install:
 	uv sync --dev
 
@@ -36,7 +43,7 @@ install:
 # --------------------------------------------------
 # DEV
 # --------------------------------------------------
-# Run FastAPI app with auto-reload (development mode)
+# Run FastAPI locally with hot reload
 dev:
 	uv run uvicorn app.main:app --reload
 
@@ -44,23 +51,25 @@ dev:
 # --------------------------------------------------
 # LINT / FORMAT
 # --------------------------------------------------
-
-# Run ruff format and check (auto-fix issues when possible)
+# Local developer command:
+# - formats code
+# - auto-fixes simple lint issues
 lint:
 	uv run ruff format .
 	uv run ruff check --fix .
 
-# CI-style check (no modifications allowed)
+# CI-safe command:
+# - checks formatting
+# - checks linting
+# - does not modify files
 check:
-	uv run ruff check .
 	uv run ruff format --check .
+	uv run ruff check .
 
 
 # --------------------------------------------------
 # TEST
 # --------------------------------------------------
-
-# Run tests with pytest
 test:
 	uv run pytest
 
@@ -68,11 +77,22 @@ test:
 # --------------------------------------------------
 # DOCKER
 # --------------------------------------------------
-
-# Build Docker image using the infra Dockerfile
+# Build Docker image from the production Dockerfile
 docker-build:
 	docker build -t reno-agent -f infra/docker/Dockerfile .
 
-# Run container locally (simulate Cloud Run)
+# Run the container locally on port 8080
 docker-run:
 	docker run -p 8080:8080 reno-agent
+
+
+# --------------------------------------------------
+# CLOUD RUN
+# --------------------------------------------------
+# Build + deploy development environment
+deploy-dev:
+	bash infra/scripts/deploy.sh $(DEV_ENV)
+
+# Build + deploy production environment
+deploy-prod:
+	bash infra/scripts/deploy.sh $(PROD_ENV)
