@@ -1,39 +1,115 @@
-from fastapi import APIRouter
+from functools import lru_cache
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-# Router dedicated to chat interactions with the AI agent
-# All endpoints in this file will be prefixed with /chat
+from app.agent.renovation_agent import RenovationAgent
+
+# Router configuration
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
-# Request schema for a chat interaction
-# - message: user input
-# - conversation_id: optional identifier to keep conversation state
+# -----------------------
+# REQUEST / RESPONSE SCHEMAS
+# -----------------------
+
+
 class ChatRequest(BaseModel):
     message: str
     conversation_id: str | None = None
 
 
-# Response schema returned by the API
-# - answer: generated response (LLM output)
-# - conversation_id: used to maintain continuity across turns
 class ChatResponse(BaseModel):
     answer: str
     conversation_id: str | None = None
 
 
-# Main chat endpoint
-# This is the entrypoint for user interactions with the AI agent
-#
-# In a full implementation, this route will:
-# - call the agent orchestrator
-# - manage conversation state
-# - trigger lead extraction / pricing logic
+# -----------------------
+# DEPENDENCY INJECTION
+# -----------------------
+
+
+@lru_cache
+def get_agent() -> RenovationAgent:
+    """
+    Dependency function used by FastAPI to provide a RenovationAgent instance.
+
+    Why use this instead of a global variable?
+
+    - Avoids instantiating the agent at import time (prevents startup crashes)
+    - Ensures configuration (.env) is loaded before instantiation
+    - Makes testing easier (can override dependency)
+    - Scales better (stateless / cloud-friendly)
+
+    This function is called automatically by FastAPI when the endpoint is hit.
+    """
+    return RenovationAgent()
+
+
+# -----------------------
+# ROUTE
+# -----------------------
+
+
 @router.post("", response_model=ChatResponse)
-async def chat(payload: ChatRequest) -> ChatResponse:
-    # Placeholder logic (echo response)
-    # Will be replaced by LLM agent call
+async def chat(
+    payload: ChatRequest,
+    agent: RenovationAgent = Depends(get_agent),  # noqa: B008
+) -> ChatResponse:
+    """
+    Chat endpoint.
+
+    This endpoint processes a user message and returns a generated response
+    from the renovation agent.
+
+    Flow
+    ----
+    1. FastAPI parses and validates the request body into a ChatRequest object
+    2. FastAPI resolves dependencies and injects a RenovationAgent instance
+    3. The agent processes the message via the LLM (agent.run)
+    4. A structured ChatResponse is returned
+
+    Parameters
+    ----------
+    payload : ChatRequest
+        Request payload containing:
+        - message: user input text
+        - conversation_id: optional identifier for conversation tracking
+
+    agent : RenovationAgent
+        Injected dependency responsible for handling the conversation logic
+        and interacting with the LLM backend
+
+    Returns
+    -------
+    ChatResponse
+        - answer: generated response from the agent
+        - conversation_id: propagated conversation identifier
+
+    Raises
+    ------
+    HTTPException
+        500: LLM configuration error (e.g. missing API keys, invalid setup)
+        503: LLM service unavailable (e.g. provider error, timeout, upstream failure)
+
+    Notes
+    -----
+    - This endpoint is stateless: conversation context must be handled externally
+    - Dependency injection enables easier testing and future extensibility
+    - Errors are intentionally abstracted to avoid leaking internal details
+    """
+
+    try:
+        answer = await agent.run(
+            user_message=payload.message,
+            conversation_id=payload.conversation_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail="LLM configuration error") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="LLM service unavailable") from exc
+
     return ChatResponse(
-        answer=f"Received: {payload.message}",
+        answer=answer,
         conversation_id=payload.conversation_id,
     )

@@ -15,6 +15,7 @@ dependencies = [
   "pydantic-settings>=2.4",    # Environment-based config
   "httpx>=0.27",               # Async HTTP client (LLM / APIs)
   "structlog>=24.4",           # Structured logging (important for observability)
+  "litellm[google]==1.83.14",  # Library to easily interface with LLM API providers
 ]
 
 # Dev-only dependencies (not shipped to production)
