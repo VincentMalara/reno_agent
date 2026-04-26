@@ -1,0 +1,124 @@
+---
+description: Makefile conventions for this FastAPI / Cloud Run project
+globs:
+  - Makefile
+alwaysApply: false
+---
+
+# Makefile conventions
+
+When editing the `Makefile`, follow these rules.
+
+## General style
+
+- Keep the Makefile simple and explicit.
+- Use comments to explain _why_ a target exists, not every shell command.
+- Group targets by section with clear separators.
+- Keep `.DEFAULT_GOAL := help`.
+- Do not introduce hidden side effects in generic commands like `install`, `lint`, `check`, or `test`.
+
+## Environment files
+
+Deployment configuration is stored in:
+
+- `env/dev.env`
+- `env/prod.env`
+
+The Makefile should reference them through variables:
+
+```make
+DEV_ENV := env/dev.env
+PROD_ENV := env/prod.env
+```
+
+Do not hardcode Cloud Run project IDs, regions, service names, or image names directly in the Makefile if they already belong in env files.
+
+## Local development
+
+The local development command should run FastAPI with hot reload:
+
+```make
+dev:
+	uv run uvicorn app.main:app --reload
+```
+
+Do not use this command for production.
+
+## Linting and checks
+
+Use Ruff for formatting and linting.
+
+Local developer command:
+
+```make
+lint:
+	uv run ruff format .
+	uv run ruff check --fix .
+```
+
+CI-safe command:
+
+```make
+check:
+	uv run ruff format --check .
+	uv run ruff check .
+```
+
+`check` must never modify files.
+
+## Testing
+
+Tests should be run with:
+
+```make
+test:
+	uv run pytest
+```
+
+## Docker
+
+Local Docker build should use the production Dockerfile:
+
+```make
+docker-build:
+	docker build -t reno-agent -f infra/docker/Dockerfile .
+```
+
+Local Docker run should expose port `8080`:
+
+```make
+docker-run:
+	docker run -p 8080:8080 reno-agent
+```
+
+## Deployment
+
+Deployment must go through:
+
+```make
+deploy-dev:
+	bash infra/scripts/deploy.sh $(DEV_ENV)
+
+deploy-prod:
+	bash infra/scripts/deploy.sh $(PROD_ENV)
+```
+
+Do not duplicate deployment logic in the Makefile.
+
+The deployment script is responsible for:
+
+- reading the env file
+- building the Docker image
+- pushing the image
+- deploying to Cloud Run
+
+## Help target
+
+Whenever a new target is added, update the `help` target.
+
+The help output should stay readable and grouped by usage:
+
+- install / dev
+- lint / check / test
+- docker
+- deploy
