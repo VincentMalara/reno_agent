@@ -18,6 +18,10 @@ This project provides a FastAPI-based backend designed to:
 - **uv** — package & environment management
 - **Ruff** — linting & formatting
 - **Pytest** — testing
+- **LiteLLM** — unified LLM provider interface
+- **Google Vertex AI** — Gemini model hosting
+- **Cloud Run** — serverless deployment
+- **Artifact Registry** — Docker image registry
 
 ---
 
@@ -26,21 +30,26 @@ This project provides a FastAPI-based backend designed to:
 ```
 
 app/
-├── api/                # API layer (versioned)
+├── api/
 │   └── v1/
-│       ├── routes/     # Endpoints (chat, health, leads)
-│       └── router.py   # Route aggregation
-├── main.py             # FastAPI entrypoint
+│       ├── routes/
+│       └── router.py
+├── llm/                # LLM client & agent logic
+├── core/               # Config & settings
+├── main.py
 
-tests/                  # Unit & integration tests
-
-infra/                  # Deployment (Docker, Cloud Run)
-├── docker/
-│   ├── Dockerfile
-│   └── .dockerignore
+infra/
 ├── scripts/
 │   ├── build.sh
-│   └── deploy.sh
+│   ├── deploy.sh
+│   └── setup_iam.sh
+
+env/
+├── dev.env
+├── prod.env
+
+tests/
+Dockerfile
 
 ```
 
@@ -48,22 +57,20 @@ infra/                  # Deployment (Docker, Cloud Run)
 
 ## ⚡ Getting Started
 
-### 1. Install dependencies
+### Install dependencies
 
 ```bash
 make install
 ```
 
-### 2. Run the API
+### Run the API
 
 ```bash
 make dev
 ```
 
-API will be available at:
-
-- [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- API: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ---
 
@@ -75,17 +82,15 @@ API will be available at:
 GET /api/v1/health
 ```
 
-Used for monitoring and Cloud Run readiness checks.
-
 ---
 
-### Chat (AI entrypoint)
+### Chat (LLM entrypoint)
 
 ```http
 POST /api/v1/chat
 ```
 
-Example request:
+Example:
 
 ```json
 {
@@ -93,48 +98,24 @@ Example request:
 }
 ```
 
-This endpoint will eventually:
-
-- orchestrate the LLM agent
-- qualify the project
-- estimate pricing
-- extract structured lead data
-
 ---
 
 ### Leads
+
+Currently returns a placeholder response. Lead persistence will be implemented after structured extraction.
 
 ```http
 GET /api/v1/leads
 ```
 
-Returns extracted leads (placeholder for now).
-
 ---
 
 ## 🛠️ Development
 
-### Run API
-
 ```bash
 make dev
-```
-
-### Lint & Format (auto-fix)
-
-```bash
 make lint
-```
-
-### CI-style checks (no modifications)
-
-```bash
 make check
-```
-
-### Run tests
-
-```bash
 make test
 ```
 
@@ -142,61 +123,84 @@ make test
 
 ## 🐳 Docker
 
-### Build image
-
 ```bash
 make docker-build
-```
-
-### Run container locally
-
-```bash
 make docker-run
 ```
 
-App will be available at:
-
-- [http://localhost:8080](http://localhost:8080)
+App runs on [http://localhost:8080](http://localhost:8080)
 
 ---
 
 ## ☁️ Deployment (Cloud Run)
 
-### Build & push image
+### Environment config
 
-```bash
-bash infra/scripts/build.sh <PROJECT_ID>
+Stored in:
+
+```
+env/dev.env
+env/prod.env
 ```
 
-### Deploy service
+---
+
+### 1. Setup IAM (one-time)
 
 ```bash
-bash infra/scripts/deploy.sh <PROJECT_ID>
+make setup-iam-dev
+make setup-iam-prod
+```
+
+---
+
+### 2. Deploy
+
+```bash
+make deploy-dev
+make deploy-prod
 ```
 
 ---
 
 ## 🧠 Roadmap
 
-- [ ] LLM agent integration (Gemini / OpenAI)
+- [x] FastAPI backend scaffold
+
+- [x] Cloud Run deployment
+
+- [x] LLM integration (LiteLLM + Vertex AI)
+
+- [x] Environment-based configuration
+
+- [x] IAM setup for Cloud Run → Vertex AI
+
 - [ ] Structured lead extraction
+
 - [ ] Pricing engine (rule-based + AI)
-- [ ] Conversation state management
+
+- [ ] Conversation memory
+
 - [ ] CRM integration
-- [ ] Cloud Run production setup (env vars, secrets)
-- [ ] Evaluation pipeline (LLM evals)
+
+- [ ] Secret Manager integration
+
+- [ ] LLM evaluation pipeline
+
+- [ ] Terraform infrastructure
 
 ---
 
 ## 📌 Design Notes
 
-- API is versioned (`/api/v1`) to support non-breaking evolution
-- Clear separation between:
-  - API layer
-  - domain logic (future)
-  - LLM orchestration (future)
+- Versioned API (`/api/v1`)
 
-- Designed for production deployment on Cloud Run
+- Clean separation:
+  - API layer
+  - LLM orchestration
+  - Config
+
+- Production-ready Cloud Run deployment
 
 ---
 

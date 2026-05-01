@@ -81,7 +81,7 @@ Local Docker build should use the production Dockerfile:
 
 ```make
 docker-build:
-	docker build -t reno-agent -f infra/docker/Dockerfile .
+	docker build -t reno-agent -f Dockerfile .
 ```
 
 Local Docker run should expose port `8080`:
