@@ -55,7 +55,5 @@ ENV PORT=8080
 # --------------------------------------------------
 # Start the application
 # --------------------------------------------------
-# Use uv run:
-# - ensures environment is correctly used
-# - --no-sync avoids re-installing dependencies at runtime
-CMD ["sh", "-c", "uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# Dependencies are installed into the system environment during the image build.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

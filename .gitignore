@@ -201,3 +201,4 @@ __marimo__/
 
 # MacOS
 .DS_Store
+github-actions-*-key.json

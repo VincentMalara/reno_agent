@@ -1,0 +1,146 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-dev:
+    name: Deploy dev
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create dev env file
+        env:
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          REGION: ${{ vars.REGION }}
+          REPOSITORY: ${{ vars.REPOSITORY }}
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+          TAG: dev-${{ github.sha }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          VERTEX_PROJECT: ${{ vars.VERTEX_PROJECT }}
+          VERTEX_LOCATION: ${{ vars.VERTEX_LOCATION }}
+        run: |
+          mkdir -p env
+          {
+            echo "APP_ENV=dev"
+            echo "PROJECT_ID=${PROJECT_ID}"
+            echo "REGION=${REGION}"
+            echo "REPOSITORY=${REPOSITORY}"
+            echo "IMAGE_NAME=${IMAGE_NAME}"
+            echo "SERVICE_NAME=${SERVICE_NAME}"
+            echo "TAG=${TAG}"
+            echo "LLM_MODEL=${LLM_MODEL}"
+            echo "VERTEX_PROJECT=${VERTEX_PROJECT}"
+            echo "VERTEX_LOCATION=${VERTEX_LOCATION}"
+          } > env/dev.env
+
+      - name: Validate dev deployment config
+        run: |
+          set -a
+          . env/dev.env
+          set +a
+          missing=0
+          for name in APP_ENV PROJECT_ID REGION REPOSITORY IMAGE_NAME SERVICE_NAME TAG LLM_MODEL VERTEX_PROJECT VERTEX_LOCATION; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is empty. Check the GitHub Environment variables for dev."
+              missing=1
+            fi
+          done
+          exit "${missing}"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ vars.PROJECT_ID }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authenticate Docker to Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.REGION }}-docker.pkg.dev" --quiet
+
+      - name: Deploy dev
+        run: make deploy-dev
+
+  deploy-prod:
+    name: Deploy prod
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create prod env file
+        env:
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          REGION: ${{ vars.REGION }}
+          REPOSITORY: ${{ vars.REPOSITORY }}
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+          TAG: prod-${{ github.sha }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          VERTEX_PROJECT: ${{ vars.VERTEX_PROJECT }}
+          VERTEX_LOCATION: ${{ vars.VERTEX_LOCATION }}
+        run: |
+          mkdir -p env
+          {
+            echo "APP_ENV=prod"
+            echo "PROJECT_ID=${PROJECT_ID}"
+            echo "REGION=${REGION}"
+            echo "REPOSITORY=${REPOSITORY}"
+            echo "IMAGE_NAME=${IMAGE_NAME}"
+            echo "SERVICE_NAME=${SERVICE_NAME}"
+            echo "TAG=${TAG}"
+            echo "LLM_MODEL=${LLM_MODEL}"
+            echo "VERTEX_PROJECT=${VERTEX_PROJECT}"
+            echo "VERTEX_LOCATION=${VERTEX_LOCATION}"
+          } > env/prod.env
+
+      - name: Validate prod deployment config
+        run: |
+          set -a
+          . env/prod.env
+          set +a
+          missing=0
+          for name in APP_ENV PROJECT_ID REGION REPOSITORY IMAGE_NAME SERVICE_NAME TAG LLM_MODEL VERTEX_PROJECT VERTEX_LOCATION; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is empty. Check the GitHub Environment variables for prod."
+              missing=1
+            fi
+          done
+          exit "${missing}"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ vars.PROJECT_ID }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authenticate Docker to Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.REGION }}-docker.pkg.dev" --quiet
+
+      - name: Deploy prod
+        run: make deploy-prod

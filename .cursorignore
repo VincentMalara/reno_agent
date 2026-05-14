@@ -157,3 +157,6 @@ exports/
 # - Excluding data + artifacts = much better suggestions
 # - Never expose secrets to the AI index
 # =========================================================
+
+
+github-actions-*-key.json
